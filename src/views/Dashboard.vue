@@ -32,7 +32,7 @@
         <button @click="start" :disabled="running" class="start-btn">Start</button>
         <button @click="stop" :disabled="!running" class="stop-btn">Pause</button>
       </div>
-      <!-- <button @click="reset" class="reset-btn">Reset</button> -->
+       <button @click="reset" class="reset-btn">Reset</button> 
       <!-- Show last saved info -->
       <div v-if="lastSaved" class="last-saved">
         Last saved: {{ lastSaved }}
