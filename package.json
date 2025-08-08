@@ -3,16 +3,14 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "docker:build": "docker build -t bucketlist-frontend .",
-    "docker:run": "docker run -p 3000:3000 bucketlist-frontend",
-    "docker:dev": "docker-compose --profile dev up",
-    "docker:prod": "docker-compose up",
-    "docker:stop": "docker-compose down"
-  },
+"scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "lint": "eslint .",
+  "preview": "vite preview",
+  "deploy": "gh-pages -d dist"
+},
+
   "dependencies": {
     "vue": "^3.5.17",
     "vue-router": "^4.5.1"
