@@ -183,11 +183,35 @@ button:focus {
       methods: {
         handleLogin() {
           if (this.email === "george@gmail.com" && this.password === "password123") {
-            this.$router.push({ name: 'Dashboard', query: { email: this.email } });
+            // Store user info securely in localStorage
+            localStorage.setItem('currentUser', this.email)
+            localStorage.setItem('userSession', JSON.stringify({
+              email: this.email,
+              loginTime: new Date().toISOString()
+            }))
+            this.$router.push({ name: 'Dashboard' });
           }else if (this.email === "joy@gmail.com" && this.password === "password123") {
-            this.$router.push({ name: 'Dashboard', query: { email: this.email } });
-          }
-          else {
+            localStorage.setItem('currentUser', this.email)
+            localStorage.setItem('userSession', JSON.stringify({
+              email: this.email,
+              loginTime: new Date().toISOString()
+            }))
+            this.$router.push({ name: 'Dashboard' });
+          }else if (this.email === "Ajesh@gmail.com" && this.password === "password123") {
+            localStorage.setItem('currentUser', this.email)
+            localStorage.setItem('userSession', JSON.stringify({
+              email: this.email,
+              loginTime: new Date().toISOString()
+            }))
+            this.$router.push({ name: 'Dashboard' });
+          }else if (this.email === "Manoj@gmail.com" && this.password === "password123") {
+            localStorage.setItem('currentUser', this.email)
+            localStorage.setItem('userSession', JSON.stringify({
+              email: this.email,
+              loginTime: new Date().toISOString()
+            }))
+            this.$router.push({ name: 'Dashboard' });
+          }else {
             alert("login failed, please try again");
           }
         }

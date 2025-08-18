@@ -1,48 +1,117 @@
 <template>
   <div class="dashboard">
-    <div class="card">
-      <h2>Welcome, {{ username }}!</h2>
-      
-      <!-- Show if data was loaded from storage -->
-      <div v-if="dataLoaded && time > 0 && !running" class="storage-status">
-        ✅ Resumed from previous session: {{ previousTime }}
+    <!-- Header with user info and logout -->
+    <header class="dashboard-header">
+      <div class="user-info">
+        <div class="avatar">{{ username.charAt(0).toUpperCase() }}</div>
+        <div class="user-details">
+          <h3>{{ username }}</h3>
+          <p>{{ userEmail }}</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button @click="viewSpreadsheet" class="icon-btn" title="View Data Spreadsheet">
+          📊
+        </button>
+        <button @click="testGoogleSheets" class="icon-btn" title="Test Google Sheets">
+          🔗
+        </button>
+        <button @click="logout" class="icon-btn" title="Logout">
+          🚪
+        </button>
+      </div>
+    </header>
+
+    <!-- Main timer section -->
+    <div class="timer-container">
+      <!-- Notification area -->
+      <div v-if="lastActionMessage" class="notification-area">
+        <div class="notification success">
+          <span class="notification-icon">✅</span>
+          <span class="notification-text">{{ lastActionMessage }}</span>
+        </div>
       </div>
       
-      <!-- Show if timer is currently running -->
-      <div v-if="running" class="running-status">
-        🔄 Timer is running (continues in background)
-      </div>
-      
-      <!-- Show if starting fresh -->
-      <div v-if="!dataLoaded || (time === 0 && !running)" class="fresh-start">
-        🆕 Starting fresh timer
-      </div>
-      
-      <div class="time">{{ formattedTime }}</div>
-      
-      <!-- Show total time in seconds for reference -->
-      <div class="time-info">
-        Total seconds: {{ time }}
-      </div>
-      <div class="time-info">
-        Time I have: {{ timeIHave }}
-      </div>
-      
-      <div class="buttons">
-        <button @click="start" :disabled="running" class="start-btn">Start</button>
-        <button @click="stop" :disabled="!running" class="stop-btn">Pause</button>
-      </div>
-       <button @click="reset" class="reset-btn">Reset</button> 
-      <!-- Show last saved info -->
-      <div v-if="lastSaved" class="last-saved">
-        Last saved: {{ lastSaved }}
+      <div class="timer-card">
+        <!-- Status indicators -->
+        <div class="status-indicators">
+          <div v-if="dataLoaded && time > 0 && !running" class="status-badge resumed">
+            <div class="status-icon">✅</div>
+            <div class="status-text">
+              <span class="status-title">Session Resumed</span>
+              <span class="status-subtitle">Previous: {{ previousTime }}</span>
+            </div>
+          </div>
+          
+          <div v-if="running" class="status-badge running">
+            <div class="status-icon">🔄</div>
+            <div class="status-text">
+              <span class="status-title">Timer Running</span>
+              <span class="status-subtitle">Continues in background</span>
+            </div>
+          </div>
+          
+          <div v-if="!dataLoaded || (time === 0 && !running)" class="status-badge fresh">
+            <div class="status-icon">🆕</div>
+            <div class="status-text">
+              <span class="status-title">Fresh Start</span>
+              <span class="status-subtitle">New timer session</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main timer display -->
+        <div class="timer-display">
+          <div class="time-main">{{ formattedTime }}</div>
+          <div class="time-secondary">
+            <div class="time-stat">
+              <span class="label">Total Seconds</span>
+              <span class="value">{{ time.toLocaleString() }}</span>
+            </div>
+            <div class="time-stat">
+              <span class="label">Remaining</span>
+              <span class="value">{{ timeIHave }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Control buttons -->
+        <div class="controls">
+          <div class="primary-controls">
+            <button @click="start" :disabled="running" class="control-btn start-btn">
+              <span class="btn-icon">▶️</span>
+              <span class="btn-text">{{ running ? 'Running' : 'Start' }}</span>
+            </button>
+            <button @click="stop" :disabled="!running" class="control-btn stop-btn">
+              <span class="btn-icon">⏸️</span>
+              <span class="btn-text">Pause</span>
+            </button>
+            <button @click="reset" class="control-btn reset-btn">
+              <span class="btn-icon">🔄</span>
+              <span class="btn-text">Reset</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Last saved info -->
+        <div v-if="lastSaved" class="last-saved">
+          <div class="saved-icon">💾</div>
+          <div class="saved-text">
+            <span class="saved-label">Last saved</span>
+            <span class="saved-time">{{ lastSaved }}</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import sheetsService from '../services/sheetsService.js'
+
 export default {
+  name: 'Dashboard',
+  components: {},
   data() {
     return {
       time: 0,
@@ -52,16 +121,17 @@ export default {
       lastSaved: null,
       previousTime: null,
       startTime: null,
-      autoSaveInterval: null
+      autoSaveInterval: null,
+      lastActionMessage: ''
     }
   },
   computed: {
     userEmail() {
-      console.log(this.$route.query.email);
-      return this.$route.query.email || 'User'
+      // Get user email from localStorage instead of route query
+      return localStorage.getItem('currentUser') || 'User'
     },
     username() {
-      const userEmail = this.$route.query.email || 'User'
+      const userEmail = this.userEmail
       return userEmail.split('@')[0]
     },
     formattedTime() {
@@ -100,24 +170,28 @@ export default {
         this.running = true
         this.startTime = Date.now() - (this.time * 1000)
         
-        // Save start time to localStorage
+        // Save start time to localStorage for session recovery
         this.saveStartTime()
+        // Don't save to sheets when starting - only save when stopping
         this.updateTimeFromStartTime()
         // Update timer every second
         this.interval = setInterval(() => {
           this.updateTimeFromStartTime()
         }, 1000)
         
-        // Auto-save every 10 seconds while running
+        // Auto-save every 10 seconds while running (to localStorage only)
         this.autoSaveInterval = setInterval(() => {
-          this.timesavetolocalStorage()
+          // Save to localStorage for session recovery, not to sheets
+          this.saveToLocalStorageOnly()
+          this.saveToSheets()
         }, 10000)
       }
+      this.saveToSheets()
     },
     stop() {
       this.running = false
       this.updateTimeFromStartTime()
-      this.timesavetolocalStorage()
+      this.saveToSheets()
       this.clearStartTime()
       clearInterval(this.interval)
       clearInterval(this.autoSaveInterval)
@@ -125,7 +199,8 @@ export default {
     reset() {
       this.stop()
       this.time = 0
-      this.timesavetolocalStorage()
+      // Don't save to sheets when resetting - the stop() already saved the final time
+      this.saveToLocalStorageOnly()
       this.dataLoaded = false
     },
     
@@ -136,18 +211,23 @@ export default {
     },
     
     saveStartTime() {
-      const userEmail = this.$route.query.email || 'User'
+      // Save to localStorage to handle page refreshes
+      const userEmail = this.userEmail
       localStorage.setItem(`timer_start_${userEmail}`, this.startTime.toString())
+      console.log('Start time saved to localStorage for session persistence')
     },
     
     clearStartTime() {
-      const userEmail = this.$route.query.email || 'User'
+      // Clear the start time from localStorage
+      const userEmail = this.userEmail
       localStorage.removeItem(`timer_start_${userEmail}`)
       this.startTime = null
+      console.log('Start time cleared from localStorage')
     },
     
     checkForActiveTimer() {
-      const userEmail = this.$route.query.email || 'User'
+      // Check localStorage for active timer to handle page refreshes
+      const userEmail = this.userEmail
       const savedStartTime = localStorage.getItem(`timer_start_${userEmail}`)
       
       if (savedStartTime) {
@@ -161,15 +241,17 @@ export default {
         }, 1000)
         
         this.autoSaveInterval = setInterval(() => {
-          this.timesavetolocalStorage()
+          this.saveToSheets()
         }, 10000)
         
+        console.log('Active timer restored from localStorage')
         return true
       }
       return false
     },
-    timesavetolocalStorage() {
-      const userEmail = this.$route.query.email || 'User'
+    
+    async saveToSheets() {
+      const userEmail = this.userEmail
       const DateTime = new Date().toLocaleString()
       const timeData = {
         user: userEmail,
@@ -178,50 +260,127 @@ export default {
         lastUpdated: DateTime
       }
       
-      localStorage.setItem(`timer_${userEmail}`, JSON.stringify(timeData))
+      // Save only to Google Sheets (this should only be called for completed sessions)
+      const result = await sheetsService.saveTimerData(timeData)
       this.lastSaved = DateTime
+      
+      if (result.success) {
+        if (result.action === 'updated') {
+          console.log('✅ Updated daily total in Google Sheets:', result.message)
+        } else {
+          console.log('✅ Created new daily record in Google Sheets:', result.message)
+        }
+        
+        // Show user-friendly notification
+        // this.showNotification(result.message, 'success')
+      } else {
+        console.error('Failed to save to Google Sheets:', result.error)
+        this.showNotification('Failed to save to Google Sheets: ' + result.error, 'error')
+      }
+      
+      return result
     },
     
-    loadPreviousData() {
-      const userEmail = this.$route.query.email || 'User'
+    showNotification(message, type = 'info') {
+      // Simple notification - you can enhance this with a proper notification component
+      console.log(`${type.toUpperCase()}: ${message}`)
       
-      // First check if there's an active timer running
-      const hasActiveTimer = this.checkForActiveTimer()
+      // For now, just update the last saved message to include the action
+      if (type === 'success') {
+        // You could show this in the UI somewhere
+        this.lastActionMessage = message
+        
+        // Clear the message after 5 seconds
+        setTimeout(() => {
+          this.lastActionMessage = ''
+        }, 5000)
+      }
+    },
+    
+    saveToLocalStorageOnly() {
+      // Save only to localStorage for session recovery (not to Google Sheets)
+      const userEmail = this.userEmail
+      const DateTime = new Date().toLocaleString()
+      const timeData = {
+        user: userEmail,
+        totalSeconds: this.time,
+        formattedTime: this.formattedTime,
+        lastUpdated: DateTime
+      }
       
-      if (!hasActiveTimer) {
-        // If no active timer, load saved data
+      try {
+        localStorage.setItem(`timer_${userEmail}`, JSON.stringify(timeData))
+        this.lastSaved = DateTime
+        console.log('Timer state saved to localStorage for session recovery')
+      } catch (error) {
+        console.error('Failed to save to localStorage:', error)
+      }
+    },
+    
+    async loadPreviousData() {
+      const userEmail = this.userEmail
+      
+      try {
+        // First try to load from Google Sheets
+        const userData = await sheetsService.getUserTimerData(userEmail)
+        
+        if (userData && userData.length > 0) {
+          // Get the most recent entry
+          const latestData = userData[0]
+          
+          // Store the previous time for display
+          this.previousTime = latestData.formattedTime || '00:00:00'
+          
+          // Load the previous time
+          this.time = latestData.totalSeconds || 0
+          this.lastSaved = latestData.lastUpdated
+          this.dataLoaded = true
+          
+          console.log('Data loaded from Google Sheets')
+        } else {
+          // Fallback to localStorage if no Google Sheets data
+          await this.loadFromLocalStorage(userEmail)
+        }
+      } catch (error) {
+        console.error('Error loading data from Google Sheets:', error)
+        // Fallback to localStorage
+        await this.loadFromLocalStorage(userEmail)
+      }
+    },
+    
+    async loadFromLocalStorage(userEmail) {
+      try {
         const savedData = localStorage.getItem(`timer_${userEmail}`)
         
         if (savedData) {
-          try {
-            const data = JSON.parse(savedData)
-            
-            // Store the previous time for display
-            this.previousTime = data.formattedTime || '00:00:00'
-            
-            // Load the previous time
-            this.time = data.totalSeconds || 0
-            this.lastSaved = data.lastUpdated
-            this.dataLoaded = true
-            
-          } catch (error) {
-            this.time = 0
-            this.dataLoaded = false
-          }
+          const data = JSON.parse(savedData)
+          
+          // Store the previous time for display
+          this.previousTime = data.formattedTime || '00:00:00'
+          
+          // Load the previous time
+          this.time = data.totalSeconds || 0
+          this.lastSaved = data.lastUpdated
+          this.dataLoaded = true
+          
+          console.log('Data loaded from localStorage fallback')
         } else {
           this.time = 0
           this.dataLoaded = false
+          console.log('No previous data found')
         }
-      } else {
-        this.dataLoaded = true
+      } catch (error) {
+        console.error('Error loading from localStorage:', error)
+        this.time = 0
+        this.dataLoaded = false
       }
     },
     
     handleVisibilityChange() {
       if (document.hidden) {
-        // Tab became hidden - save current state
+        // Tab became hidden - save current state to localStorage only (not sheets)
         if (this.running) {
-          this.timesavetolocalStorage()
+          this.saveToLocalStorageOnly()
         }
       } else {
         // Tab became visible - update time if timer was running
@@ -234,14 +393,56 @@ export default {
     handleBeforeUnload() {
       if (this.running) {
         this.updateTimeFromStartTime()
-        this.timesavetolocalStorage()
+        // Save to localStorage for recovery, not to sheets (to avoid incomplete sessions)
+        this.saveToLocalStorageOnly()
+      }
+    },
+    
+    viewSpreadsheet() {
+      this.$router.push({ name: 'Spreadsheet' })
+    },
+    
+    logout() {
+      // Clear all user data from localStorage
+      localStorage.removeItem('currentUser')
+      localStorage.removeItem('userSession')
+      
+      // Clear any timer-specific data
+      const userEmail = this.userEmail
+      localStorage.removeItem(`timer_${userEmail}`)
+      localStorage.removeItem(`timer_start_${userEmail}`)
+      
+      // Stop any running timers
+      if (this.running) {
+        this.stop()
+      }
+      
+      // Redirect to login
+      this.$router.push({ name: 'Login' })
+    },
+    
+    async testGoogleSheets() {
+      console.log('Testing Google Sheets connection...')
+      const result = await sheetsService.testConnection()
+      
+      if (result.success) {
+        alert('✅ Google Sheets connection successful!\nCheck console for details.')
+      } else {
+        alert(`❌ Google Sheets connection failed:\n${result.error}\n\nCheck console for details.`)
       }
     }
   },
   
   mounted() {
-    // Load previous data when component mounts
-    this.loadPreviousData()
+    // Check for active timer first (to handle page refreshes)
+    const hasActiveTimer = this.checkForActiveTimer()
+    
+    // Load previous data when component mounts (if no active timer)
+    if (!hasActiveTimer) {
+      this.loadPreviousData()
+    } else {
+      this.dataLoaded = true
+    }
     
     // Listen for visibility changes to handle background/foreground transitions
     document.addEventListener('visibilitychange', this.handleVisibilityChange)
@@ -250,25 +451,14 @@ export default {
     window.addEventListener('beforeunload', this.handleBeforeUnload)
   },
   
-  // Also watch for route changes
-  watch: {
-    userEmail: {
-      handler(newEmail) {
-        if (newEmail) {
-          this.loadPreviousData()
-        }
-      },
-      immediate: true
-    }
-  },
   beforeUnmount() {
     clearInterval(this.interval)
     clearInterval(this.autoSaveInterval)
     
-    // Save current state before unmounting
+    // Save current state before unmounting to localStorage only
     if (this.running) {
       this.updateTimeFromStartTime()
-      this.timesavetolocalStorage()
+      this.saveToLocalStorageOnly()
     }
     
     // Remove event listeners
@@ -279,61 +469,203 @@ export default {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 .dashboard {
   min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Header Section */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Notification Area */
+.notification-area {
+  margin-bottom: 20px;
+}
+
+.notification {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  animation: slideIn 0.3s ease-out;
+}
+
+.notification.success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.notification-icon {
+  font-size: 20px;
+}
+
+.notification-text {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  font-family: Arial, sans-serif;
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
 }
 
-.card {
-  background: white;
-  padding: 40px;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  min-width: 300px;
+.user-details h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
 }
 
-h2 {
-  margin: 0 0 20px 0;
-  color: #333;
-}
-
-.time {
-  font-size: 3rem;
-  font-weight: bold;
-  margin: 30px 0;
-  color: #444;
-}
-
-.time-info {
+.user-details p {
+  margin: 4px 0 0 0;
   font-size: 14px;
   color: #666;
-  margin: -20px 0 20px 0;
 }
 
-.storage-status {
-  background: #d4edda;
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  background: rgba(102, 126, 234, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Timer Container */
+.timer-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+}
+
+.timer-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+/* Status Indicators */
+.status-indicators {
+  margin-bottom: 32px;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: 1px solid;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.status-badge.resumed {
+  background: rgba(212, 237, 218, 0.8);
+  border-color: #c3e6cb;
   color: #155724;
-  padding: 8px 16px;
-  border-radius: 5px;
-  margin-bottom: 20px;
-  font-size: 14px;
-  border: 1px solid #c3e6cb;
 }
 
-.running-status {
-  background: #fff3cd;
+.status-badge.running {
+  background: rgba(255, 243, 205, 0.8);
+  border-color: #ffeaa7;
   color: #856404;
-  padding: 8px 16px;
-  border-radius: 5px;
-  margin-bottom: 20px;
-  font-size: 14px;
-  border: 1px solid #ffeaa7;
   animation: pulse 2s infinite;
+}
+
+.status-badge.fresh {
+  background: rgba(209, 236, 241, 0.8);
+  border-color: #bee5eb;
+  color: #0c5460;
+}
+
+.status-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.status-text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.status-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.status-subtitle {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 2px;
 }
 
 @keyframes pulse {
@@ -341,69 +673,216 @@ h2 {
   50% { opacity: 0.7; }
 }
 
-.fresh-start {
-  background: #d1ecf1;
-  color: #0c5460;
-  padding: 8px 16px;
-  border-radius: 5px;
+/* Timer Display */
+.timer-display {
+  margin-bottom: 40px;
+}
+
+.time-main {
+  font-size: 4rem;
+  font-weight: 700;
+  color: #1a1a1a;
   margin-bottom: 20px;
-  font-size: 14px;
-  border: 1px solid #bee5eb;
+  font-family: 'Inter', monospace;
+  letter-spacing: -2px;
 }
 
-.last-saved {
-  margin-top: 20px;
-  font-size: 12px;
-  color: #666;
-  padding: 8px;
-  background: #f8f9fa;
-  border-radius: 5px;
-}
-
-.buttons {
+.time-secondary {
   display: flex;
-  gap: 10px;
+  justify-content: center;
+  gap: 32px;
+}
+
+.time-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.time-stat .label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #666;
+  font-weight: 500;
+}
+
+.time-stat .value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  font-family: 'Inter', monospace;
+}
+
+/* Controls */
+.controls {
+  margin-bottom: 32px;
+}
+
+.primary-controls {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.control-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
   justify-content: center;
 }
 
-button {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-button:disabled {
+.control-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none !important;
 }
 
 .start-btn {
-  background: #4CAF50;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
   color: white;
+  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
 }
 
 .start-btn:hover:not(:disabled) {
-  background: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
 }
 
 .stop-btn {
-  background: #f44336;
+  background: linear-gradient(135deg, #f44336, #da190b);
   color: white;
+  box-shadow: 0 4px 16px rgba(244, 67, 54, 0.3);
 }
 
 .stop-btn:hover:not(:disabled) {
-  background: #da190b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
 }
 
 .reset-btn {
-  background: #008CBA;
+  background: linear-gradient(135deg, #008CBA, #007B9A);
   color: white;
+  box-shadow: 0 4px 16px rgba(0, 140, 186, 0.3);
 }
 
 .reset-btn:hover {
-  background: #007B9A;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 140, 186, 0.4);
+}
+
+.btn-icon {
+  font-size: 16px;
+}
+
+.btn-text {
+  font-size: 14px;
+}
+
+/* Last Saved */
+.last-saved {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(248, 249, 250, 0.8);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.saved-icon {
+  font-size: 18px;
+  opacity: 0.7;
+}
+
+.saved-text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.saved-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.saved-time {
+  font-size: 13px;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Stats Section */
+.stats-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 16px;
+    gap: 20px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .header-actions {
+    order: -1;
+    align-self: flex-end;
+  }
+
+  .timer-card {
+    padding: 32px 24px;
+  }
+
+  .time-main {
+    font-size: 3rem;
+  }
+
+  .time-secondary {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .primary-controls {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .control-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .time-main {
+    font-size: 2.5rem;
+  }
+
+  .user-details h3 {
+    font-size: 16px;
+  }
+
+  .user-details p {
+    font-size: 13px;
+  }
 }
 </style>

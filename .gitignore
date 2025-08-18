@@ -13,8 +13,7 @@ dist-ssr
 *.local
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
+.vscode/
 .idea
 .DS_Store
 *.suo
@@ -22,3 +21,18 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Documentation files (development only)
+*.md
+!README.md
+
+# Development files
+docker-compose*.yml
+Dockerfile.dev
+*.backup
+*.tmp
