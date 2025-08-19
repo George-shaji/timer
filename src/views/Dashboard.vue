@@ -144,7 +144,7 @@ export default {
       return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
     },
     timeIHave() {
-      const totalSeconds = 8 * 3600 // 8 hours in seconds
+      const totalSeconds = 9 * 3600 // 8 hours in seconds
       const remainingSeconds = Math.max(totalSeconds - this.time, 0)
       const hours = Math.floor(remainingSeconds / 3600)
       const minutes = Math.floor((remainingSeconds % 3600) / 60)
