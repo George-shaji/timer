@@ -2,7 +2,6 @@ import { createRouter, createWebHashHistory } from "vue-router"
 import Login from "../views/Login.vue"
 import Dashboard from "../views/Dashboard.vue"
 import SpreadsheetView from "../views/SpreadsheetView.vue"
-import TestPage from "../views/Test.vue"
 import CalendarView from "../views/CalendarView.vue"
 
 const routes = [
