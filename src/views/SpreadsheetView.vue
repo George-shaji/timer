@@ -157,12 +157,20 @@ export default {
   computed: {
     filteredData() {
       let filtered = this.data
-
+      const user = JSON.parse(localStorage.getItem('userSession') || '{}')
       // Filter by user if search term exists
-      if (this.searchUser) {
-        filtered = filtered.filter(row => 
-          row.user.toLowerCase().includes(this.searchUser.toLowerCase())
-        )
+      if(user.email === "george@gmail.com" ) {
+        if (this.searchUser) {
+          filtered = filtered.filter(row => 
+            row.user.toLowerCase().includes(this.searchUser.toLowerCase())
+          )
+        }
+      }else{
+        if (user.email) {
+          filtered = filtered.filter(row => 
+          row.user.toLowerCase().includes(user.email.toLowerCase())
+          )
+        }
       }
 
       // Sort data
