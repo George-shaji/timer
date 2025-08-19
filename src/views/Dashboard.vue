@@ -10,6 +10,9 @@
         </div>
       </div>
       <div class="header-actions">
+        <button @click="viewCalendar" class="icon-btn" title="View Calendar Data">
+          📅
+        </button>
         <button @click="viewSpreadsheet" class="icon-btn" title="View Data Spreadsheet">
           📊
         </button>
@@ -400,6 +403,10 @@ export default {
     
     viewSpreadsheet() {
       this.$router.push({ name: 'Spreadsheet' })
+    },
+    
+    viewCalendar() {
+      this.$router.push({ name: 'Calendar' })
     },
     
     logout() {

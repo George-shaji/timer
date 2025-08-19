@@ -2,6 +2,8 @@ import { createRouter, createWebHashHistory } from "vue-router"
 import Login from "../views/Login.vue"
 import Dashboard from "../views/Dashboard.vue"
 import SpreadsheetView from "../views/SpreadsheetView.vue"
+import TestPage from "../views/Test.vue"
+import CalendarView from "../views/CalendarView.vue"
 
 const routes = [
   { 
@@ -19,6 +21,18 @@ const routes = [
     path: "/spreadsheet", 
     component: SpreadsheetView, 
     name: "Spreadsheet",
+    meta: { requiresAuth: true }
+  },
+  { 
+    path: "/calendar", 
+    component: CalendarView, 
+    name: "Calendar",
+    meta: { requiresAuth: true }
+  },
+  { 
+    path: "/test", 
+    component: TestPage, 
+    name: "Test",
     meta: { requiresAuth: true }
   }
 ]
