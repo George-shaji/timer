@@ -108,7 +108,7 @@
         </thead>
         <tbody>
           <tr v-for="row in filteredData" :key="row.timestamp + row.user" class="data-row">
-            <td class="timestamp-cell">{{ formatTimestamp(row.timestamp) }}</td>
+            <td style="color: aliceblue;" class="timestamp-cell">{{ formatTimestamp(row.timestamp) }}</td>
             <td class="user-cell">
               <div class="user-info">
                 <div class="user-avatar">{{ row.user.charAt(0).toUpperCase() }}</div>
@@ -283,7 +283,7 @@ export default {
 
 .spreadsheet-view {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3434e4bb, #242225);
   font-family: 'Inter', sans-serif;
   padding: 20px;
 }
@@ -293,7 +293,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.95);
+  background: linear-gradient(135deg, #3434e4bb, #242225);
   backdrop-filter: blur(20px);
   border-radius: 16px;
   padding: 24px;
@@ -385,7 +385,7 @@ export default {
 
 /* Filters Section */
 .filters-section {
-  background: rgba(255, 255, 255, 0.95);
+  background: linear-gradient(135deg, #2b2b7abb, #242225);
   backdrop-filter: blur(20px);
   border-radius: 16px;
   padding: 24px;
@@ -491,13 +491,13 @@ export default {
 
 .status-title {
   font-weight: 600;
-  color: #333;
+  color: #f3f2f2;
   font-size: 14px;
 }
 
 .status-subtitle {
   font-size: 12px;
-  color: #666;
+  color: #ece5e5;
 }
 
 .mini-btn {
@@ -519,7 +519,7 @@ export default {
 
 /* Table */
 .table-container {
-  background: rgba(255, 255, 255, 0.95);
+  background: linear-gradient(135deg, #5c676dbb, #242225);
   backdrop-filter: blur(20px);
   border-radius: 16px;
   padding: 24px;
@@ -571,11 +571,11 @@ export default {
 .sortable {
   cursor: pointer;
   user-select: none;
-  transition: background-color 0.2s ease;
+  transition: linear-gradient(135deg, #4f3b70, #4605be);
 }
 
 .sortable:hover {
-  background: linear-gradient(135deg, #e9ecef, #dee2e6);
+  background: linear-gradient(135deg, #50485e, #a4a1a8);
 }
 
 .sort-indicator {

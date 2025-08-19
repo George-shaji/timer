@@ -5,8 +5,8 @@
       <div class="user-info">
         <div class="avatar">{{ username.charAt(0).toUpperCase() }}</div>
         <div class="user-details">
-          <h3>{{ username }}</h3>
-          <p>{{ userEmail }}</p>
+          <h3 style="color: #fcfcfc; font-size: 20px; font-weight: 600;">{{ username }}</h3>
+          <p style="color: #fcfcfc; font-size: 16px;">{{ userEmail }}</p>
         </div>
       </div>
       <div class="header-actions">
@@ -480,7 +480,7 @@ export default {
 
 .dashboard {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2929bbbb, #242225);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   padding: 20px;
   display: flex;
@@ -493,7 +493,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.95);
+  background: linear-gradient(135deg, #af7532bb, #8c10ca);
   backdrop-filter: blur(20px);
   border-radius: 16px;
   padding: 20px 24px;
@@ -551,7 +551,7 @@ export default {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #2929bbbb, #242225);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -584,7 +584,7 @@ export default {
   border: none;
   border-radius: 12px;
   background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
+  color: #121314;
   font-size: 18px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -607,7 +607,7 @@ export default {
 }
 
 .timer-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: linear-gradient(135deg, #3434e4bb, #242225);
   backdrop-filter: blur(20px);
   border-radius: 24px;
   padding: 40px;
@@ -688,7 +688,7 @@ export default {
 .time-main {
   font-size: 4rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #dbd1d1;
   margin-bottom: 20px;
   font-family: 'Inter', monospace;
   letter-spacing: -2px;
@@ -718,7 +718,7 @@ export default {
 .time-stat .value {
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: #b4acac;
   font-family: 'Inter', monospace;
 }
 
@@ -821,7 +821,7 @@ export default {
 
 .saved-label {
   font-size: 12px;
-  color: #666;
+  color: #b6b6b6;
   font-weight: 500;
 }
 

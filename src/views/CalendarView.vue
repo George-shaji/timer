@@ -379,7 +379,7 @@ export default {
   max-width: 1400px;
   margin: 0 auto;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0d0d0d 100%);
+  background: linear-gradient(135deg, #2d2672, #7d23d6);
   min-height: 100vh;
   position: relative;
   font-weight: 400;
@@ -418,7 +418,7 @@ export default {
   margin-bottom: 32px;
   padding: 28px 36px;
   border-radius: 24px;
-  background: rgba(30, 30, 30, 0.8);
+  background: linear-gradient(135deg, #5c5ed4, #3a0074);
   backdrop-filter: blur(20px);
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.3),
@@ -1109,8 +1109,8 @@ export default {
 
 .highlight-row {
   background: linear-gradient(90deg, rgba(255, 193, 7, 0.25) 0%, rgba(255, 235, 59, 0.25) 100%) !important;
-  border-left: 4px solid #ffc107;
-  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+  border-left: 4px solid #ff0707;
+  box-shadow: 0 4px 15px rgba(223, 8, 8, 0.3);
 }
 
 .highlight-row td {
@@ -1137,13 +1137,13 @@ export default {
 }
 
 .cell-content:not(:empty) {
-  background: rgba(77, 133, 94, 0.8);
+  background: linear-gradient(135deg, #4f4870, #afa7b6);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .cell-content:hover:not(:empty) {
-  background: #39FF14;
+  background:linear-gradient(135deg, #590988, #a45cec);
   transform: scale(1.05);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
   overflow: visible;
