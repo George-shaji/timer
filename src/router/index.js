@@ -28,12 +28,6 @@ const routes = [
     component: CalendarView, 
     name: "Calendar",
     meta: { requiresAuth: true }
-  },
-  { 
-    path: "/test", 
-    component: TestPage, 
-    name: "Test",
-    meta: { requiresAuth: true }
   }
 ]
 
