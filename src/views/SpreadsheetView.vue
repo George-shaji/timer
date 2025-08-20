@@ -83,7 +83,8 @@
         <p>Loading data...</p>
       </div>
       
-      <table v-else-if="filteredData.length > 0" class="spreadsheet-table">
+      <!-- Desktop/Tablet Table View -->
+      <table v-else-if="filteredData.length > 0 && !showMobileView" class="spreadsheet-table">
         <thead>
           <tr>
             <th @click="sortBy = 'timestamp'" class="sortable">
@@ -127,6 +128,42 @@
         </tbody>
       </table>
 
+      <!-- Mobile Card View -->
+      <div v-else-if="filteredData.length > 0 && showMobileView" class="mobile-cards">
+        <div v-for="row in filteredData" :key="row.timestamp + row.user" class="mobile-card">
+          <div class="card-header">
+            <div class="card-user">
+              <div class="user-avatar">{{ row.user.charAt(0).toUpperCase() }}</div>
+              <span>{{ row.user }}</span>
+            </div>
+            <div class="card-duration">{{ row.formattedTime }}</div>
+          </div>
+          <div class="card-details">
+            <div class="card-detail">
+              <span class="card-detail-label">Started</span>
+              <span>{{ formatTimestamp(row.timestamp) }}</span>
+            </div>
+            <div class="card-detail">
+              <span class="card-detail-label">Ended</span>
+              <span>{{ formatTimestamp(row.lastUpdated) }}</span>
+            </div>
+            <div class="card-detail">
+              <span class="card-detail-label">Duration (sec)</span>
+              <span>{{ row.totalSeconds.toLocaleString() }}</span>
+            </div>
+            <div class="card-detail">
+              <span class="card-detail-label">Session ID</span>
+              <span>{{ row.timestamp.slice(-8) }}</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button @click="deleteRow(row)" class="delete-btn" title="Delete session">
+              🗑️ Delete
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Empty State -->
       <div v-else class="empty-state">
         <div class="empty-icon">📊</div>
@@ -151,7 +188,8 @@ export default {
       data: [],
       searchUser: '',
       sortBy: 'timestamp',
-      loading: false
+      loading: false,
+      isMobile: false
     }
   },
   computed: {
@@ -195,6 +233,9 @@ export default {
       if (this.filteredData.length === 0) return '00:00:00'
       const avg = this.filteredData.reduce((sum, row) => sum + row.totalSeconds, 0) / this.filteredData.length
       return this.formatDuration(Math.floor(avg))
+    },
+    showMobileView() {
+      return this.isMobile || window.innerWidth <= 575
     }
   },
   methods: {
@@ -270,10 +311,23 @@ export default {
       const spreadsheetId = '1C1RhDiWjr1EI29YXfTr_AE_lds5zI3dWR7ed8UH5N1s'
       const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`
       window.open(url, '_blank')
+    },
+
+    checkMobile() {
+      this.isMobile = window.innerWidth <= 575
+    },
+
+    handleResize() {
+      this.checkMobile()
     }
   },
   mounted() {
     this.refreshData()
+    this.checkMobile()
+    window.addEventListener('resize', this.handleResize)
+  },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.handleResize)
   }
 }
 </script>
@@ -667,13 +721,215 @@ export default {
   color: #333;
 }
 
+/* Mobile Cards (shown conditionally via JS) */
+.mobile-cards {
+  display: block;
+}
+
+.mobile-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.card-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-user .user-avatar {
+  width: 24px;
+  height: 24px;
+  font-size: 11px;
+}
+
+.card-user span {
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+}
+
+.card-duration {
+  font-size: 16px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.card-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 11px;
+  color: #666;
+}
+
+.card-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-detail-label {
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.card-actions .delete-btn {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
 .empty-state p {
   margin: 0;
   font-size: 16px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* Responsive Design */
+
+/* Large Desktop */
+@media (min-width: 1200px) {
+  .spreadsheet-view {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px;
+  }
+
+  .header {
+    padding: 32px;
+  }
+
+  .header-content h1 {
+    font-size: 32px;
+  }
+
+  .header-content p {
+    font-size: 18px;
+  }
+
+  .action-btn {
+    padding: 14px 24px;
+    font-size: 16px;
+  }
+
+  .filters-section {
+    padding: 32px;
+  }
+
+  .table-container {
+    padding: 32px;
+  }
+}
+
+/* Desktop */
+@media (min-width: 992px) and (max-width: 1199px) {
+  .spreadsheet-view {
+    padding: 24px;
+  }
+
+  .filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .data-summary {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-around;
+    gap: 32px;
+  }
+}
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 991px) {
+  .spreadsheet-view {
+    padding: 20px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 20px;
+    align-items: stretch;
+  }
+
+  .header-content {
+    text-align: center;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .action-btn {
+    justify-content: center;
+  }
+
+  .filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .data-summary {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-around;
+    gap: 24px;
+    margin-top: 20px;
+  }
+
+  .sheet-status {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .status-details {
+    align-items: center;
+  }
+
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .spreadsheet-table {
+    min-width: 700px;
+  }
+
+  .spreadsheet-table th,
+  .spreadsheet-table td {
+    padding: 12px 8px;
+    font-size: 14px;
+  }
+}
+
+/* Mobile Large */
+@media (min-width: 576px) and (max-width: 767px) {
   .spreadsheet-view {
     padding: 16px;
   }
@@ -681,12 +937,44 @@ export default {
   .header {
     flex-direction: column;
     gap: 20px;
-    align-items: flex-start;
+    align-items: stretch;
+    padding: 20px;
+  }
+
+  .header-content {
+    text-align: center;
+  }
+
+  .header-content h1 {
+    font-size: 24px;
+  }
+
+  .header-content p {
+    font-size: 14px;
   }
 
   .actions {
-    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .action-btn {
+    padding: 12px 16px;
+    font-size: 14px;
     justify-content: center;
+  }
+
+  .btn-text {
+    display: none;
+  }
+
+  .btn-icon {
+    font-size: 16px;
+  }
+
+  .filters-section {
+    padding: 20px;
   }
 
   .filters {
@@ -695,16 +983,281 @@ export default {
   }
 
   .data-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 18px;
+  }
+
+  .sheet-status {
     flex-direction: column;
+    text-align: center;
     gap: 12px;
+    padding: 12px;
+  }
+
+  .status-title {
+    font-size: 13px;
+  }
+
+  .status-subtitle {
+    font-size: 11px;
   }
 
   .table-container {
+    padding: 16px;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .spreadsheet-table {
     min-width: 600px;
+  }
+
+  .spreadsheet-table th,
+  .spreadsheet-table td {
+    padding: 10px 6px;
+    font-size: 13px;
+  }
+
+  .user-info {
+    gap: 8px;
+  }
+
+  .user-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .delete-btn {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+}
+
+/* Mobile Small */
+@media (max-width: 575px) {
+  .spreadsheet-view {
+    padding: 12px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+    padding: 16px;
+  }
+
+  .header-content {
+    text-align: center;
+  }
+
+  .header-content h1 {
+    font-size: 20px;
+  }
+
+  .header-content p {
+    font-size: 13px;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .action-btn {
+    padding: 10px 12px;
+    font-size: 12px;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .btn-text {
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  .btn-icon {
+    font-size: 16px;
+  }
+
+  .filters-section {
+    padding: 16px;
+  }
+
+  .filters {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .filter-group label {
+    font-size: 13px;
+  }
+
+  .search-input,
+  .sort-select {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .data-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 16px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
+
+  .sheet-status {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .status-icon {
+    font-size: 18px;
+  }
+
+  .status-title {
+    font-size: 12px;
+  }
+
+  .status-subtitle {
+    font-size: 10px;
+  }
+
+  .mini-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .table-container {
+    padding: 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Mobile Card Layout for Table */
+  .spreadsheet-table {
+    min-width: 600px;
+  }
+
+  .mobile-cards {
+    display: block;
+  }
+
+  .mobile-card {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .card-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-user .user-avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+
+  .card-user span {
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .card-duration {
+    font-size: 16px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .card-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-size: 11px;
+    color: #666;
+  }
+
+  .card-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .card-detail-label {
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .card-actions {
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .card-actions .delete-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .loading-state {
+    padding: 30px;
+  }
+
+  .loading-spinner {
+    width: 32px;
+    height: 32px;
+  }
+
+  .empty-state {
+    padding: 40px 16px;
+  }
+
+  .empty-icon {
+    font-size: 48px;
+  }
+
+  .empty-state h3 {
+    font-size: 20px;
+  }
+
+  .empty-state p {
+    font-size: 14px;
   }
 }
 </style>
