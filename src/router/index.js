@@ -3,6 +3,7 @@ import Login from "../views/Login.vue"
 import Dashboard from "../views/Dashboard.vue"
 import SpreadsheetView from "../views/SpreadsheetView.vue"
 import CalendarView from "../views/CalendarView.vue"
+import MonthlyReportView from "../views/MonthlyReportView.vue"
 
 const routes = [
   { 
@@ -26,6 +27,12 @@ const routes = [
     path: "/calendar", 
     component: CalendarView, 
     name: "Calendar",
+    meta: { requiresAuth: true }
+  },
+  { 
+    path: "/monthly-report", 
+    component: MonthlyReportView, 
+    name: "MonthlyReport",
     meta: { requiresAuth: true }
   }
 ]

@@ -22,6 +22,11 @@
         <button @click="logout" class="icon-btn" title="Logout">
           🚪
         </button>
+        <button @click="viewMonthlyReport" class="monthly-report-btn" title="View Monthly Report">
+          <span class="btn-icon">📊</span>
+          <span class="btn-text">Monthly Report</span>
+          <div class="btn-shine"></div>
+        </button>
       </div>
     </header>
 
@@ -532,7 +537,11 @@ export default {
       // Redirect to login
       this.$router.push({ name: 'Login' })
     },
-    
+
+    async viewMonthlyReport() {
+      this.$router.push({ name: 'MonthlyReport' })
+    },
+
     async testGoogleSheets() {
       console.log('Testing Google Sheets connection...')
       const result = await sheetsService.testConnection()
@@ -600,7 +609,7 @@ export default {
 
 .dashboard {
   min-height: 100vh;
-  background: linear-gradient(135deg, #2929bbbb, #242225);
+  background: linear-gradient(135deg, #575a85bb, #12255a);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   padding: 20px;
   display: flex;
@@ -716,6 +725,98 @@ export default {
 .icon-btn:hover {
   background: rgba(102, 126, 234, 0.2);
   transform: translateY(-2px);
+}
+
+/* Monthly Report Button - Cool Design */
+.monthly-report-btn {
+  position: relative;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  overflow: hidden;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.monthly-report-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+.monthly-report-btn:hover::before {
+  left: 100%;
+}
+
+.monthly-report-btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 50%, #f093fb 100%);
+}
+
+.monthly-report-btn:active {
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.monthly-report-btn .btn-icon {
+  font-size: 16px;
+  animation: pulse-icon 2s infinite;
+}
+
+.monthly-report-btn .btn-text {
+  font-size: 12px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.btn-shine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.monthly-report-btn:hover .btn-shine {
+  opacity: 1;
+}
+
+@keyframes pulse-icon {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 /* Timer Container */
@@ -980,6 +1081,23 @@ export default {
   .header-actions {
     order: -1;
     align-self: flex-end;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .monthly-report-btn {
+    padding: 10px 16px;
+    font-size: 12px;
+    border-radius: 12px;
+  }
+
+  .monthly-report-btn .btn-text {
+    font-size: 11px;
+  }
+
+  .monthly-report-btn .btn-icon {
+    font-size: 14px;
   }
 
   .timer-card {
