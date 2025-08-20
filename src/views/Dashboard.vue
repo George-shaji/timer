@@ -38,6 +38,14 @@
       <div class="timer-card">
         <!-- Status indicators -->
         <div class="status-indicators">
+          <div v-if="currentSessionDate" class="status-badge session-date">
+            <div class="status-icon">📅</div>
+            <div class="status-text">
+              <span class="status-title">Session Date</span>
+              <span class="status-subtitle">{{ formatSessionDate(currentSessionDate) }}</span>
+            </div>
+          </div>
+          
           <div v-if="dataLoaded && time > 0 && !running" class="status-badge resumed">
             <div class="status-icon">✅</div>
             <div class="status-text">
@@ -125,7 +133,8 @@ export default {
       previousTime: null,
       startTime: null,
       autoSaveInterval: null,
-      lastActionMessage: ''
+      lastActionMessage: '',
+      currentSessionDate: null
     }
   },
   computed: {
@@ -216,26 +225,69 @@ export default {
     saveStartTime() {
       // Save to localStorage to handle page refreshes
       const userEmail = this.userEmail
+      const currentDate = new Date().toDateString()
+      
       localStorage.setItem(`timer_start_${userEmail}`, this.startTime.toString())
-      console.log('Start time saved to localStorage for session persistence')
+      localStorage.setItem(`timer_session_date_${userEmail}`, currentDate)
+      this.currentSessionDate = currentDate
+      
+      console.log('Start time and session date saved to localStorage for session persistence')
     },
     
     clearStartTime() {
       // Clear the start time from localStorage
       const userEmail = this.userEmail
       localStorage.removeItem(`timer_start_${userEmail}`)
+      localStorage.removeItem(`timer_session_date_${userEmail}`)
       this.startTime = null
-      console.log('Start time cleared from localStorage')
+      this.currentSessionDate = null
+      console.log('Start time and session date cleared from localStorage')
+    },
+    
+    clearSessionData() {
+      // Clear all session-related data when date changes
+      const userEmail = this.userEmail
+      
+      // Clear timer state
+      this.stop()
+      this.time = 0
+      this.dataLoaded = false
+      this.previousTime = null
+      this.lastSaved = null
+      this.lastActionMessage = ''
+      
+      // Clear localStorage session data
+      localStorage.removeItem(`timer_start_${userEmail}`)
+      localStorage.removeItem(`timer_session_date_${userEmail}`)
+      localStorage.removeItem(`timer_${userEmail}`)
+      
+      this.startTime = null
+      this.currentSessionDate = null
+      
+      console.log('All session data cleared due to date change - starting fresh session')
+      
+      // Show notification to user
+      this.showNotification('New day detected! Starting fresh timer session.', 'info')
     },
     
     checkForActiveTimer() {
       // Check localStorage for active timer to handle page refreshes
       const userEmail = this.userEmail
       const savedStartTime = localStorage.getItem(`timer_start_${userEmail}`)
+      const sessionDate = localStorage.getItem(`timer_session_date_${userEmail}`)
+      const currentDate = new Date().toDateString()
+      
+      // Check if the session date is different from today
+      if (sessionDate && sessionDate !== currentDate) {
+        console.log('Session date changed. Clearing old session data...')
+        this.clearSessionData()
+        return false
+      }
       
       if (savedStartTime) {
         this.startTime = parseInt(savedStartTime)
         this.running = true
+        this.currentSessionDate = sessionDate || currentDate
         this.updateTimeFromStartTime()
         
         // Resume intervals
@@ -303,6 +355,7 @@ export default {
     saveToLocalStorageOnly() {
       // Save only to localStorage for session recovery (not to Google Sheets)
       const userEmail = this.userEmail
+      const currentDate = new Date().toDateString()
       const DateTime = new Date().toLocaleString()
       const timeData = {
         user: userEmail,
@@ -313,7 +366,9 @@ export default {
       
       try {
         localStorage.setItem(`timer_${userEmail}`, JSON.stringify(timeData))
+        localStorage.setItem(`timer_session_date_${userEmail}`, currentDate)
         this.lastSaved = DateTime
+        this.currentSessionDate = currentDate
         console.log('Timer state saved to localStorage for session recovery')
       } catch (error) {
         console.error('Failed to save to localStorage:', error)
@@ -322,6 +377,15 @@ export default {
     
     async loadPreviousData() {
       const userEmail = this.userEmail
+      const currentDate = new Date().toDateString()
+      const sessionDate = localStorage.getItem(`timer_session_date_${userEmail}`)
+      
+      // Check if the session date is different from today
+      if (sessionDate && sessionDate !== currentDate) {
+        console.log('Date changed detected in loadPreviousData. Clearing old session data...')
+        this.clearSessionData()
+        return
+      }
       
       try {
         // First try to load from Google Sheets
@@ -331,6 +395,17 @@ export default {
           // Get the most recent entry
           const latestData = userData[0]
           
+          // Check if the latest data is from today
+          const dataDate = new Date(latestData.timestamp || latestData.lastUpdated).toDateString()
+          
+          if (dataDate !== currentDate) {
+            console.log('Latest data is from a different day. Starting fresh session.')
+            this.time = 0
+            this.dataLoaded = false
+            this.currentSessionDate = currentDate
+            return
+          }
+          
           // Store the previous time for display
           this.previousTime = latestData.formattedTime || '00:00:00'
           
@@ -338,20 +413,36 @@ export default {
           this.time = latestData.totalSeconds || 0
           this.lastSaved = latestData.lastUpdated
           this.dataLoaded = true
+          this.currentSessionDate = currentDate
           
           console.log('Data loaded from Google Sheets')
         } else {
           // Fallback to localStorage if no Google Sheets data
-          await this.loadFromLocalStorage(userEmail)
+          await this.loadFromLocalStorage(userEmail, currentDate)
         }
       } catch (error) {
         console.error('Error loading data from Google Sheets:', error)
         // Fallback to localStorage
-        await this.loadFromLocalStorage(userEmail)
+        await this.loadFromLocalStorage(userEmail, currentDate)
       }
     },
     
-    async loadFromLocalStorage(userEmail) {
+    async loadFromLocalStorage(userEmail, currentDate = null) {
+      if (!currentDate) {
+        currentDate = new Date().toDateString()
+      }
+      
+      const sessionDate = localStorage.getItem(`timer_session_date_${userEmail}`)
+      
+      // Check if the session date is different from today
+      if (sessionDate && sessionDate !== currentDate) {
+        console.log('Date changed detected in loadFromLocalStorage. Starting fresh session.')
+        this.time = 0
+        this.dataLoaded = false
+        this.currentSessionDate = currentDate
+        return
+      }
+      
       try {
         const savedData = localStorage.getItem(`timer_${userEmail}`)
         
@@ -365,17 +456,20 @@ export default {
           this.time = data.totalSeconds || 0
           this.lastSaved = data.lastUpdated
           this.dataLoaded = true
+          this.currentSessionDate = sessionDate || currentDate
           
           console.log('Data loaded from localStorage fallback')
         } else {
           this.time = 0
           this.dataLoaded = false
+          this.currentSessionDate = currentDate
           console.log('No previous data found')
         }
       } catch (error) {
         console.error('Error loading from localStorage:', error)
         this.time = 0
         this.dataLoaded = false
+        this.currentSessionDate = currentDate
       }
     },
     
@@ -386,7 +480,17 @@ export default {
           this.saveToLocalStorageOnly()
         }
       } else {
-        // Tab became visible - update time if timer was running
+        // Tab became visible - check for date changes first
+        const currentDate = new Date().toDateString()
+        const sessionDate = localStorage.getItem(`timer_session_date_${this.userEmail}`)
+        
+        if (sessionDate && sessionDate !== currentDate) {
+          console.log('Date changed while app was in background. Clearing session data...')
+          this.clearSessionData()
+          return
+        }
+        
+        // Update time if timer was running
         if (this.running && this.startTime) {
           this.updateTimeFromStartTime()
         }
@@ -418,6 +522,7 @@ export default {
       const userEmail = this.userEmail
       localStorage.removeItem(`timer_${userEmail}`)
       localStorage.removeItem(`timer_start_${userEmail}`)
+      localStorage.removeItem(`timer_session_date_${userEmail}`)
       
       // Stop any running timers
       if (this.running) {
@@ -436,6 +541,21 @@ export default {
         alert('✅ Google Sheets connection successful!\nCheck console for details.')
       } else {
         alert(`❌ Google Sheets connection failed:\n${result.error}\n\nCheck console for details.`)
+      }
+    },
+    
+    formatSessionDate(dateString) {
+      if (!dateString) return ''
+      
+      const today = new Date().toDateString()
+      const yesterday = new Date(Date.now() - 86400000).toDateString() // 24 hours ago
+      
+      if (dateString === today) {
+        return 'Today'
+      } else if (dateString === yesterday) {
+        return 'Yesterday'
+      } else {
+        return new Date(dateString).toLocaleDateString()
       }
     }
   },
@@ -651,6 +771,12 @@ export default {
   background: rgba(209, 236, 241, 0.8);
   border-color: #bee5eb;
   color: #0c5460;
+}
+
+.status-badge.session-date {
+  background: rgba(240, 240, 240, 0.9);
+  border-color: #d0d0d0;
+  color: #333;
 }
 
 .status-icon {
