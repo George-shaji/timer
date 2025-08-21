@@ -2,6 +2,31 @@
   <div class="dashboard">
     <!-- Header with user info and logout -->
     <header class="dashboard-header">
+      <!-- Walking Dog Pet -->
+      <div class="walking-dog">
+        <div class="dog-container">
+          <div class="dog-body">
+            <div class="dog-head">
+              <div class="dog-ear left-ear"></div>
+              <div class="dog-ear right-ear"></div>
+              <div class="dog-face">
+                <div class="dog-eye left-eye"></div>
+                <div class="dog-eye right-eye"></div>
+                <div class="dog-nose"></div>
+                <div class="dog-mouth"></div>
+              </div>
+            </div>
+            <div class="dog-legs">
+              <div class="dog-leg front-left"></div>
+              <div class="dog-leg front-right"></div>
+              <div class="dog-leg back-left"></div>
+              <div class="dog-leg back-right"></div>
+            </div>
+            <div class="dog-tail"></div>
+          </div>
+        </div>
+      </div>
+
       <div class="user-info">
         <div class="avatar">{{ username.charAt(0).toUpperCase() }}</div>
         <div class="user-details">
@@ -628,6 +653,211 @@ export default {
   padding: 20px 24px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Walking Dog Pet */
+.walking-dog {
+  position: absolute;
+  top: 66px; /* Adjusted for header height */
+  left: 0;
+  width: 100%;
+  height: 30px;
+  z-index: 1;
+}
+
+.dog-container:hover {
+  animation: walkBackwards 3s linear infinite; /* Dog goes backwards when hovered */
+}
+
+.dog-container {
+  position: absolute;
+  width: 40px;
+  height: 30px;
+  animation: walkAcross 15s linear infinite;
+}
+
+.dog-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.dog-head {
+  position: absolute;
+  top: 2px;
+  left: 20px;
+  width: 18px;
+  height: 14px;
+  background: linear-gradient(135deg, #323233bb, #b2b2b3);
+  border-radius: 8px 8px 6px 6px;
+  z-index: 3;
+}
+
+.dog-ear {
+  position: absolute;
+  width: 6px;
+  height: 8px;
+  background: #654321;
+  border-radius: 50% 50% 0 50%;
+}
+
+.left-ear {
+  top: -3px;
+  left: 2px;
+  transform: rotate(-20deg);
+}
+
+.right-ear {
+  top: -3px;
+  right: 2px;
+  transform: rotate(20deg);
+}
+
+.dog-face {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.dog-eye {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #000;
+  border-radius: 50%;
+  top: 4px;
+}
+
+.left-eye {
+  left: 4px;
+}
+
+.right-eye {
+  right: 4px;
+}
+
+.dog-nose {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #000;
+  border-radius: 50%;
+  top: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.dog-mouth {
+  position: absolute;
+  width: 4px;
+  height: 2px;
+  border: 1px solid #000;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  top: 9px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.dog-body::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 5px;
+  width: 25px;
+  height: 15px;
+  background: linear-gradient(135deg, #323233bb, #b2b2b3);
+  border-radius: 12px;
+  z-index: 2;
+}
+
+.dog-legs {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 8px;
+}
+
+.dog-leg {
+  position: absolute;
+  width: 3px;
+  height: 8px;
+  background: #654321;
+  border-radius: 2px;
+  transform-origin: top center;
+}
+
+.front-left {
+  left: 8px;
+  animation: walkLegs 0.6s ease-in-out infinite;
+}
+
+.front-right {
+  left: 14px;
+  animation: walkLegs 0.6s ease-in-out infinite 0.3s;
+}
+
+.back-left {
+  left: 20px;
+  animation: walkLegs 0.6s ease-in-out infinite 0.15s;
+}
+
+.back-right {
+  left: 26px;
+  animation: walkLegs 0.6s ease-in-out infinite 0.45s;
+}
+
+.dog-tail {
+  position: absolute;
+  top: 10px;
+  left: 2px;
+  width: 8px;
+  height: 3px;
+  background: #654321;
+  border-radius: 50%;
+  transform-origin: right center;
+  animation: wagTail 0.8s ease-in-out infinite;
+  z-index: 1;
+}
+
+@keyframes walkAcross {
+  0% {
+    left: -60px;
+  }
+  100% {
+    left: calc(100% + 20px);
+  }
+}
+
+@keyframes walkBackwards {
+  0% {
+    left: calc(100% + 20px);
+    transform: scaleX(-1); /* Flip the dog to face left */
+  }
+  100% {
+    left: -60px;
+    transform: scaleX(-1); /* Keep flipped while going backwards */
+  }
+}
+
+@keyframes walkLegs {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(25deg);
+  }
+}
+
+@keyframes wagTail {
+  0%, 100% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(15deg);
+  }
 }
 
 /* Notification Area */
@@ -1076,6 +1306,15 @@ export default {
     flex-direction: column;
     gap: 16px;
     padding: 20px;
+    min-height: 120px; /* Extra space for the dog */
+  }
+
+  .walking-dog {
+    top: 15px; /* Adjust position for mobile */
+  }
+
+  .dog-container {
+    animation: walkAcross 12s linear infinite; /* Slightly faster on mobile */
   }
 
   .header-actions {

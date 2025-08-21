@@ -42,7 +42,7 @@
             <th 
                 v-for="day in weekDays" 
                 :key="`header-${day}`" 
-                :class="{ 'today': isToday(day) }" 
+                :class="{ 'today': isToday(day), 'saturday': day === 'Saturday', 'sunday': day === 'Sunday' }" 
                 class="day-header"
             >
                 {{ day }}
@@ -73,6 +73,8 @@
                 :key="`cell-${index}-${day}`" 
                 :class="{ 
                 'today': isToday(day), 
+                'saturday': day === 'Saturday',
+                'sunday': day === 'Sunday',
                 'has-data': getCellValue(row, day) && getCellValue(row, day).trim() !== '',
                 'has-notes': getDateWithNotes(row, day) && getDateWithNotes(row, day).hasNotes,
                 'has-cell-note': getDateWithNotes(row, day) && getDateWithNotes(row, day).hasCellNote
@@ -927,6 +929,24 @@ export default {
   animation: pulse 2s infinite;
 }
 
+.week-table th.day-header.saturday {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  box-shadow: 0 0 20px rgba(231, 76, 60, 0.3);
+  border: 2px solid rgba(231, 76, 60, 0.5);
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.week-table th.day-header.sunday {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  box-shadow: 0 0 20px rgba(231, 76, 60, 0.3);
+  border: 2px solid rgba(231, 76, 60, 0.5);
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
 @keyframes pulse {
   0%, 100% {
     box-shadow: 0 0 25px rgba(255, 107, 107, 0.4);
@@ -941,6 +961,72 @@ export default {
   border-left: 4px solid #ff6b6b;
   position: relative;
   animation: glow 3s ease-in-out infinite;
+}
+
+.week-table td.day-cell.saturday {
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.3) 0%, rgba(192, 57, 43, 0.3) 100%);
+  border-left: 4px solid #e74c3c;
+  border-right: 1px solid rgba(231, 76, 60, 0.4);
+  position: relative;
+}
+
+.week-table td.day-cell.sunday {
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.3) 0%, rgba(192, 57, 43, 0.3) 100%);
+  border-left: 4px solid #e74c3c;
+  border-right: 1px solid rgba(231, 76, 60, 0.4);
+  position: relative;
+}
+
+.week-table td.day-cell.saturday .cell-content {
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.6) 0%, rgba(192, 57, 43, 0.6) 100%) !important;
+  border: 1px solid rgba(231, 76, 60, 0.4) !important;
+  color: #fff !important;
+}
+
+.week-table td.day-cell.sunday .cell-content {
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.6) 0%, rgba(192, 57, 43, 0.6) 100%) !important;
+  border: 1px solid rgba(231, 76, 60, 0.4) !important;
+  color: #fff !important;
+}
+
+.week-table td.day-cell.saturday .cell-content:hover {
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.8) 0%, rgba(192, 57, 43, 0.8) 100%) !important;
+  box-shadow: 0 8px 30px rgba(231, 76, 60, 0.4) !important;
+}
+
+.week-table td.day-cell.sunday .cell-content:hover {
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.8) 0%, rgba(192, 57, 43, 0.8) 100%) !important;
+  box-shadow: 0 8px 30px rgba(231, 76, 60, 0.4) !important;
+}
+
+.week-table td.day-cell.saturday .date-display {
+  color: #fff !important;
+  font-weight: 700 !important;
+}
+
+.week-table td.day-cell.sunday .date-display {
+  color: #fff !important;
+  font-weight: 700 !important;
+}
+
+.week-table td.day-cell.saturday .note-preview {
+  background: rgba(139, 69, 19, 0.4) !important;
+  border: 1px solid rgba(165, 42, 42, 0.5) !important;
+  color: #fff !important;
+}
+
+.week-table td.day-cell.sunday .note-preview {
+  background: rgba(139, 69, 19, 0.4) !important;
+  border: 1px solid rgba(165, 42, 42, 0.5) !important;
+  color: #fff !important;
+}
+
+.week-table td.day-cell.saturday .empty-state {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.week-table td.day-cell.sunday .empty-state {
+  color: rgba(255, 255, 255, 0.8) !important;
 }
 
 @keyframes glow {
@@ -1032,6 +1118,13 @@ export default {
   display: block;
   backdrop-filter: blur(5px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.has-cell-note .note-preview {
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.8) 0%, rgba(192, 57, 43, 0.8) 100%) !important;
+  color: #fff !important;
+  border: 1px solid rgba(220, 53, 69, 0.6) !important;
+  font-weight: 600 !important;
 }
 
 .cell-note-preview {
