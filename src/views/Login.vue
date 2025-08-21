@@ -218,6 +218,13 @@ button:focus {
               loginTime: new Date().toISOString()
             }))
             this.$router.push({ name: 'Dashboard' });
+          }else if (this.email === "Ajmal@gmail.com" && this.password === "password123") {
+            localStorage.setItem('currentUser', this.email)
+            localStorage.setItem('userSession', JSON.stringify({
+              email: this.email,
+              loginTime: new Date().toISOString()
+            }))
+            this.$router.push({ name: 'Dashboard' });
           }else {
             alert("login failed, please try again");
           }
